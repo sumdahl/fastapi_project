@@ -4,12 +4,14 @@ from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
     email: EmailStr
+    username: str
     full_name: str | None = None
 
 
 class UserRead(BaseModel):
     id: uuid.UUID
     email: EmailStr
+    username: str
     full_name: str | None = None
 
     model_config = {"from_attributes": True}

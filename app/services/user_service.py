@@ -23,9 +23,13 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User | None:
-    """Authenticate a user by email and password."""
-    user = get_user_by_email(db, email)
+def get_user_by_username(db: Session, username: str) -> User | None:
+    return db.query(User).filter(User.username == username).first()
+
+
+def authenticate_user(db: Session, identifier: str, password: str) -> User | None:
+    """Authenticate a user by email or username and password."""
+    user = get_user_by_email(db, identifier) or get_user_by_username(db, identifier)
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
@@ -33,11 +37,18 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
     return user
 
 
-def create_user_with_password(db: Session, email: str, password: str, full_name: str | None = None) -> User:
+def create_user_with_password(
+    db: Session,
+    email: str,
+    username: str,
+    password: str,
+    full_name: str | None = None
+) -> User:
     """Create a new user with a hashed password."""
     hashed_password = get_password_hash(password)
     user = User(
         email=email,
+        username=username,
         hashed_password=hashed_password,
         full_name=full_name
     )
