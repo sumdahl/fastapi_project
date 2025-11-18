@@ -1,4 +1,6 @@
 import uuid
+from datetime import datetime, timedelta
+from typing import Tuple
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate
@@ -56,3 +58,66 @@ def create_user_with_password(
     db.commit()
     db.refresh(user)
     return user
+
+
+def create_password_reset_token_for_user(db: Session, email: str) -> str | None:
+    """
+    Create a password reset token for a user.
+    
+    Uses a secure random token (more standard than JWT for password reset).
+    The token is stored as-is in the database for easy comparison.
+    For production, consider hashing the token before storing.
+    """
+    user = get_user_by_email(db, email)
+    if not user:
+        return None
+    
+    # Generate a secure random token (standard approach)
+    from app.core.security import generate_password_reset_token
+    reset_token = generate_password_reset_token()
+    
+    # Store token and expiration in database
+    # Note: In production, you might want to hash the token before storing
+    # For now, storing plain token for simplicity (still secure if DB is protected)
+    user.reset_token = reset_token
+    user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+    db.commit()
+    db.refresh(user)
+    
+    return reset_token
+
+
+def reset_user_password(db: Session, token: str, new_password: str) -> Tuple[User | None, str]:
+    """
+    Reset a user's password using a reset token.
+    
+    Standard approach: Look up user by token directly (more efficient than JWT decode).
+    
+    Returns:
+        tuple: (User object if successful, error message if failed)
+    """
+    # Find user by reset token (standard approach - direct DB lookup)
+    user = db.query(User).filter(User.reset_token == token).first()
+    
+    if not user:
+        return None, "Invalid or expired reset token"
+    
+    # Check if token has expired
+    if user.reset_token_expires is None:
+        return None, "Reset token has no expiration date"
+    
+    if user.reset_token_expires < datetime.utcnow():
+        # Clear expired token
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.commit()
+        return None, "Reset token has expired"
+    
+    # Update password and clear reset token (single-use)
+    user.hashed_password = get_password_hash(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.commit()
+    db.refresh(user)
+    
+    return user, ""

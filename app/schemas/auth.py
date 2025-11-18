@@ -39,3 +39,12 @@ class UserRegister(BaseModel):
     password: str
     full_name: str | None = None
 
+
+class ForgotPassword(BaseModel):
+    email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
+
