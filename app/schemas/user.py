@@ -5,13 +5,13 @@ from pydantic import BaseModel, EmailStr
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
-    full_name: str | None = None
+    full_name: str
 
 
 class UserRead(BaseModel):
     id: uuid.UUID
     email: EmailStr
     username: str
-    full_name: str | None = None
+    full_name: str
 
     model_config = {"from_attributes": True}

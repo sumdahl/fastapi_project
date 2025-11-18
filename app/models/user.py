@@ -10,7 +10,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(length=255), unique=True, index=True, nullable=False)
     username = Column(String(length=255), unique=True, index=True, nullable=False)
-    full_name = Column(String(length=255), nullable=True)
+    full_name = Column(String(length=255), nullable=False)
     hashed_password = Column(String(length=255), nullable=False)
     reset_token = Column(String(length=255), nullable=True, index=True)
     reset_token_expires = Column(DateTime, nullable=True)

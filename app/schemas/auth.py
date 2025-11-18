@@ -37,7 +37,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     username: str
     password: str
-    full_name: str | None = None
+    full_name: str
 
 
 class ForgotPassword(BaseModel):
